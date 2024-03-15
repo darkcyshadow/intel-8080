@@ -49,5 +49,8 @@ public:
     void execute_nop();
     int emulate(); 
     void unimplemented_instruction(); 
-    
+    void handle_arith_flag(uint16_t result); 
+    void handle_logical_flag(uint16_t result); 
+    int parity(int x, int size); 
+
 };
