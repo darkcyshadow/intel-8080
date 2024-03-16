@@ -68,5 +68,5 @@ public:
   void unimplemented_instruction();
   void handle_arith_flag(uint16_t result);
   void handle_logical_flag(uint16_t result);
-  int parity(int x, int size);
+  int parity(uint16_t result); 
 };
