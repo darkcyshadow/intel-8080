@@ -20,10 +20,37 @@ void i8080::unimplemented_instruction()
     exit(1);
 }
 
+
+/* there are diff formms of each type of instruction 
+arithmetic: 
+    register - where the values to be operated are stored in registers
+    immediate - where the source of the addend is the byte after the instruction,
+    memory - the addend is the byte pointed to by the address stored in the HL register pair 
+branch:
+    JNZ - jump if the zero flag is not set
+    JZ - jump if zero flag is set 
+    JNC - jump if carry flag is not set
+    JC - jump if carry flag is set 
+    JPO - jump if parity if odd 
+    JPE - jump if parity is even (set) 
+    JP - jump if sign flag is not set (+)
+    JM - jump if sign flag is set (-)
+CALL/RET: 
+    CNZ/RNZ - call/ret if zero flag not set 
+    CZ/RZ - call/ret if zero flag is set 
+    CNC/RNC - call/ret if carry flag is not set 
+    CC/RC - call/ret if carry flag is set 
+    CPO/RPO - call/ret if partiy is odd
+    CPE/RPE - call/ret if parity is even (set)
+    CP/RP - call/ret if sign is not set (+)
+    CM/RM - call/ret if sign is set (-)
+*/
+
 int i8080::emulate()
 {
-    unsigned char opcode = memory[pc];
-    switch (opcode)
+    // opcode is a pointer to the location in memory where the instruction is stored 
+    unsigned char* opcode = &memory[pc];
+    switch (*opcode)
     {
     }
 }
@@ -56,6 +83,8 @@ void i8080::handle_arith_flag(uint16_t result)
     p = parity(result & 0xff); 
     a = result & 0xff;
 }
+
+
 
 
 
