@@ -20,6 +20,39 @@ void i8080::unimplemented_instruction()
     exit(1);
 }
 
+int i8080::parity(uint16_t result)
+{
+    int count = 0;
+    while (result != 0)
+    {
+        result = result & (result - 1);
+        ++count;
+    }
+    if (count % 2 == 0)
+    {
+        return 1;
+    }
+    else
+        return 0;
+}
+
+// 0x80 = 1000 0000
+// 0xff = 1111 1111
+
+// we bitmask before storing to ensure it fits in an 8 bit register 
+void i8080::handle_arith_flag(uint16_t result)
+{
+    // zero flag - set to 1 when result == 0
+    z = ((result & 0xff) == 0); 
+    // sign flag - set to 1 when msb is set(negative)
+    s = ((result & 0x80) != 0); 
+    // cy flag - set to 1 when instruction resultd in a carry 
+    cy = (result > 0xff); 
+    // parity flag - set to 1 if result is even
+    p = parity(result & 0xff); 
+    
+}
+
 
 /* there are diff formms of each type of instruction 
 arithmetic: 
@@ -75,41 +108,14 @@ int i8080::emulate()
             }
         // inr, b
         case 0x04: 
-            
+
 
 
 
     }
 }
 
-int i8080::parity(uint16_t result)
-{
-    int count = 0;
-    while (result != 0)
-    {
-        result = result & (result - 1);
-        ++count;
-    }
-    if (count % 2 == 0)
-    {
-        return 1;
-    }
-    else
-        return 0;
-}
 
-// 0x80 = 1000 0000
-// 0xff = 1111 1111
-
-// we bitmask before storing to ensure it fits in an 8 bit register 
-void i8080::handle_arith_flag(uint16_t result)
-{
-    z = ((result & 0xff) == 0); 
-    s = ((result & 0x80) != 0); 
-    cy = (result > 0xff); 
-    p = parity(result & 0xff); 
-    a = result & 0xff;
-}
 
 
 
