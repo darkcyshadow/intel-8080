@@ -44,6 +44,8 @@ CALL/RET:
     CPE/RPE - call/ret if parity is even (set)
     CP/RP - call/ret if sign is not set (+)
     CM/RM - call/ret if sign is set (-)
+logical: 
+
 */
 
 int i8080::emulate()
@@ -52,6 +54,31 @@ int i8080::emulate()
     unsigned char* opcode = &memory[pc];
     switch (*opcode)
     {
+        //nop
+        case 0x00: break; 
+        // lxi b, word
+        case 0x01: 
+            c = opcode[1]; 
+            b = opcode[2]; 
+            pc +=2; 
+            break; 
+        // stax, b 
+        case 0x02: 
+            uint16_t bc = b << 8 | c; 
+            memory[bc] = a; 
+        // inx, b
+        case 0x03: 
+            ++c; 
+            if (c == 0)
+            {
+                ++b;
+            }
+        // inr, b
+        case 0x04: 
+            
+
+
+
     }
 }
 
