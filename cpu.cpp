@@ -108,7 +108,102 @@ int i8080::emulate()
             }
         // inr, b
         case 0x04: 
-
+            uint16_t result = --b; 
+            handle_arith_flag(result); 
+        // dcr, b 
+        case 0x05: 
+            uint16_t result = --b;
+        // mvi, b, d8
+        case 0x06: 
+            uint16_t byte = opcode[1]; 
+            b = byte;
+        // rlc 
+        case 0x07: 
+            uint16_t temp = a; 
+            c = temp >> 7;
+            a = temp << 1 | temp >> 7;  
+        // nop 
+        case 0x08: 
+            break; 
+        // dad b 
+        case 0x09: 
+            uint16_t hl = h << 8 | l; 
+            uint16_t bc = b << 8 | c;
+            hl += bc; 
+            handle_arith_flag(hl); 
+        // ldax b 
+        case 0xa: 
+           uint16_t bc = b << 8 | c; 
+           a = memory[bc]; 
+        // dcx b
+        case 0xb: 
+           uint16_t bc = b << 8 | c; 
+           --bc; 
+        // inr c 
+        case 0xc: 
+            uint16_t result = ++c; 
+            handle_arith_flag(result); 
+        // dcr, c 
+        case 0xd: 
+            uint16_t result = --c; 
+            handle_arith_flag(result); 
+        // mvi, c, d8 
+        case 0xe: 
+            uint16_t value = opcode[1]; 
+            c = value; 
+        // rrc
+        case 0xf: 
+            uint16_t temp = a; 
+            a = temp >> 1 | temp << 7;
+            c = a >> 7; 
+        // nop
+        case 0x10: 
+            break; 
+        // lxi d, d16 
+        case 0x11: 
+            e = opcode[1]; 
+            d = opcode[2]; 
+            pc += 2; 
+            break; 
+        // stax d 
+        case 0x12: 
+            uint16_t de = d << 8 | c; 
+            memory[de] = a; 
+        // inx d 
+        case 0x13: 
+            ++e; 
+            if (e == 0)
+            {
+                ++d; 
+            }
+        // inr, d 
+        case 0x14: 
+            uint16_t result = ++d; 
+            handle_arith_flag(result); 
+        // dcr, d 
+        case 0x15: 
+            uint16_t result = --d; 
+            handle_arith_flag(result);
+        // mvi d, d8 
+        case 0x16: 
+            uint16_t result = opcode[1]; 
+            d = result; 
+        // ral 
+        case 0x17: 
+            uint16_t temp = a; 
+            a = temp << 1 | c; 
+            c = temp >> 7; 
+        // nop 
+        case 0x18: 
+            break; 
+        // dad d 
+        case 0x19: 
+            uint16_t hl = h << 8 | l; 
+            uint16_t de = h << 8 | e; 
+            uint32_t result = hl + de;
+            c = ((result & 0xffff) > 0); 
+            h = (result & 0xff) >> 8; 
+            l = result & 0xff; 
 
 
 
