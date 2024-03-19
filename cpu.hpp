@@ -76,7 +76,7 @@ public:
   void CALL(); 
   void CMA(); 
   void CMC(); 
-  void CMP(); 
+  void CMP(uint8_t reg); 
   void DAA(); 
   void DAD(); 
   void DCR(); 

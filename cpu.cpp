@@ -113,9 +113,31 @@ void i8080:: CALL()
     memory[sp - 2] = return_address & 0xff;
     sp = sp - 2; 
     pc = opcode[2] << 8 | opcode[1]; 
-
-
 }
+
+void i8080::CMA()
+{
+    a = ~a; 
+}
+
+void i8080::CMC()
+{
+    c = ~c; 
+}
+
+void i8080::CMP(uint8_t reg)
+{   
+    uint16_t result = a - reg; 
+    c = (a < reg); 
+    z = (result == 0); 
+    s = ((result & 0x80) != 0); 
+    p = parity(result & 0xff); 
+}
+
+
+
+
+
 int i8080::emulate()
 {
     // opcode is a pointer to the location in memory where the instruction is stored 
