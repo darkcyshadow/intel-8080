@@ -81,10 +81,45 @@ logical:
 
 */
 
+void i8080::ADD(uint8_t reg)
+{
+    uint16_t result = a + reg; 
+    handle_arith_flag(result); 
+    a = result & 0xff;
+
+}
+
+void i8080:: ADC(uint8_t reg)
+{
+    uint16_t result = a + c + reg; 
+    handle_arith_flag(result); 
+    a = result & 0xff; 
+}
+
+void i8080:: ANA(uint8_t reg)
+{
+    uint16_t result = a & reg; 
+    handle_arith_flag(result); 
+    a = result & 0xff; 
+}
+
+// the call routine works by first saving the return address, we increment pc by 2 as the address that is being called is 2 bytes 
+// save return address onto stack 
+// set pc to the address that is being called
+void i8080:: CALL()
+{
+    uint16_t return_address = pc + 2; 
+    memory[sp - 1] = (return_address >> 8) & 0xff; 
+    memory[sp - 2] = return_address & 0xff;
+    sp = sp - 2; 
+    pc = opcode[2] << 8 | opcode[1]; 
+
+
+}
 int i8080::emulate()
 {
     // opcode is a pointer to the location in memory where the instruction is stored 
-    unsigned char* opcode = &memory[pc];
+    opcode = &memory[pc];
     switch (*opcode)
     {
         //nop
@@ -108,7 +143,7 @@ int i8080::emulate()
             }
         // inr, b
         case 0x04: 
-            uint16_t result = --b; 
+            uint16_t result = ++b; 
             handle_arith_flag(result); 
         // dcr, b 
         case 0x05: 

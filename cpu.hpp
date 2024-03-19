@@ -42,6 +42,7 @@ private:
   uint8_t memory[0xFFFF];
   uint16_t pc;
   uint16_t sp;
+  unsigned char* opcode; 
   // accumulator, most arithmethic operations operate on register A and store result into A
   uint8_t a;
   uint8_t b;
@@ -69,4 +70,44 @@ public:
   void handle_arith_flag(uint16_t result);
   void handle_logical_flag(uint16_t result);
   int parity(uint16_t result); 
+  void ADD(uint8_t reg); 
+  void ADC(uint8_t reg); 
+  void ANA(uint8_t reg); 
+  void CALL(); 
+  void CMA(); 
+  void CMC(); 
+  void CMP(); 
+  void DAA(); 
+  void DAD(); 
+  void DCR(); 
+  void DCX(); 
+  void INR(); 
+  void INX(); 
+  void JMP();
+  void LDA(); 
+  void LDAX(); 
+  void LHLD(); 
+  void LXI(); 
+  void ORA(); 
+  void POP(); 
+  void POP_PSW(); 
+  void PUSH(); 
+  void PUSH_PSW(); 
+  void RAL(); 
+  void RAR(); 
+  void RET(); 
+  void RLC(); 
+  void RRC(); 
+  void SDHL(); 
+  void STA(); 
+  void SBB(); 
+  void SBB(); 
+  void SUB(); 
+  void XCHG(); 
+  void XRA(); 
+  void XTHL(); 
+
+
+
+
 };
