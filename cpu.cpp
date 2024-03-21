@@ -209,6 +209,60 @@ void i8080::JMP()
     
 }
 
+void i8080::LDA()
+{
+    uint16_t address = opcode[2] << 8 | opcode[1]; 
+    a = memory[address]; 
+}
+
+void i8080::LDAX(uint8_t reg1, uint8_t reg2)
+{
+    uint16_t address = reg1 << 8 | reg2; 
+    a = memory[address]; 
+}
+
+void i8080::LHLD()
+{
+    uint16_t address = opcode[2] << 8 | opcode[1]; 
+    l = memory[address]; 
+    h = memory[address + 1]; 
+}
+
+void i8080::LXI(uint8_t* reg1, uint8_t* reg2)
+{
+    *reg1 = opcode[2]; 
+    *reg2 = opcode[1]; 
+}
+
+void i8080::ORA(uint8_t reg)
+{
+    uint16_t result = a | reg; 
+    cy = 0; 
+    z = (result == 0);
+    s = ((result & 0x80) != 0);
+    p = parity(result & 0xff);
+    a = result & 0xff; 
+}
+
+void i8080::POP(uint8_t* reg1, uint8_t* reg2)
+{
+    *reg2 = memory[sp]; 
+    *reg1 = memory[sp + 1]; 
+    sp +=2; 
+}
+
+void i8080::POP_PSW()
+{
+    a = memory[sp + 1]; 
+    uint8_t psw = memory[sp]; 
+    s = (psw >> 7 & 0x1); 
+    z = (psw >> 6 & 0x1); 
+    ac = (psw >> 4 & 0x1); 
+    p = (psw >> 2 & 0x1); 
+    cy = (psw & 0x1); 
+    sp += 2; 
+}
+
 
 
 int i8080::emulate()

@@ -86,11 +86,11 @@ public:
   void INX(uint8_t *reg1, uint8_t *reg2); 
   void JMP();
   void LDA(); 
-  void LDAX(); 
+  void LDAX(uint8_t reg1, uint8_t reg2); 
   void LHLD(); 
-  void LXI(); 
-  void ORA(); 
-  void POP(); 
+  void LXI(uint8_t *reg1, uint8_t *reg2); 
+  void ORA(uint8_t reg); 
+  void POP(uint8_t* reg1, uint8_t* reg2); 
   void POP_PSW(); 
   void PUSH(); 
   void PUSH_PSW(); 
