@@ -68,6 +68,7 @@ public:
   int emulate();
   void unimplemented_instruction();
   void handle_arith_flag(uint16_t result);
+  void handle_without_carry(uint16_t result); 
   void handle_logical_flag(uint16_t result);
   int parity(uint16_t result); 
   void ADD(uint8_t reg); 
@@ -78,11 +79,11 @@ public:
   void CMC(); 
   void CMP(uint8_t reg); 
   void DAA(); 
-  void DAD(); 
-  void DCR(); 
-  void DCX(); 
-  void INR(); 
-  void INX(); 
+  void DAD(uint8_t reg1, uint8_t reg2); 
+  void DCR(uint8_t *reg); 
+  void DCX(uint8_t* reg1, uint8_t* reg2); 
+  void INR(uint8_t *reg); 
+  void INX(uint8_t *reg1, uint8_t *reg2); 
   void JMP();
   void LDA(); 
   void LDAX(); 
