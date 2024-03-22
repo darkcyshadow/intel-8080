@@ -263,6 +263,35 @@ void i8080::POP_PSW()
     sp += 2; 
 }
 
+void i8080::PUSH(uint8_t reg1, uint8_t reg2)
+{
+    sp -= 1; 
+    memory[sp] = reg1; 
+    sp -= 1; 
+    memory[sp] = reg2;
+}
+
+
+void i8080::PUSH_PSW()
+{
+    uint8_t psw = (s << 7) | (z << 6) | (ac << 4) | (p << 2) | (1 << 1) | cy;
+    memory[sp - 1] = a; 
+    memory[sp - 2] = psw; 
+    sp -=2; 
+}
+
+void i8080::RAL()
+{
+    uint8_t high_bit = a >> 7; 
+    uint8_t temp = a; 
+    a = (temp << 1) | cy; 
+    cy = high_bit; 
+}
+
+void i8080::RAR()
+{
+    uint8_t low_bit = a & 0x1; 
+}
 
 
 int i8080::emulate()

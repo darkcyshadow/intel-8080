@@ -92,7 +92,7 @@ public:
   void ORA(uint8_t reg); 
   void POP(uint8_t* reg1, uint8_t* reg2); 
   void POP_PSW(); 
-  void PUSH(); 
+  void PUSH(uint8_t reg1, uint8_t reg2); 
   void PUSH_PSW(); 
   void RAL(); 
   void RAR(); 
