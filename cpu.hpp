@@ -99,7 +99,7 @@ public:
   void RET(); 
   void RLC(); 
   void RRC(); 
-  void SDHL(); 
+  void SHLD(); 
   void STA(); 
   void SBB(); 
   void SBB(); 

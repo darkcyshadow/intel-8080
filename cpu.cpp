@@ -171,128 +171,154 @@ void i8080::DAD(uint8_t reg1, uint8_t reg2)
     l = result & 0xff;
 }
 
-void i8080::DCR(uint8_t* reg)
+void i8080::DCR(uint8_t *reg)
 {
-    uint16_t result = --*reg; 
-    handle_without_carry(result); 
-    *reg = result & 0xff; 
+    uint16_t result = --*reg;
+    handle_without_carry(result);
+    *reg = result & 0xff;
 }
 
-void i8080::DCX(uint8_t* reg1, uint8_t* reg2)
+void i8080::DCX(uint8_t *reg1, uint8_t *reg2)
 {
-    --*reg2; 
+    --*reg2;
     if (*reg2 == 0xff)
     {
-        --*reg1; 
+        --*reg1;
     }
 }
 
-void i8080::INR(uint8_t* reg)
+void i8080::INR(uint8_t *reg)
 {
-    uint16_t result = ++*reg; 
+    uint16_t result = ++*reg;
     handle_without_carry(result);
-    *reg = result & 0xff;  
+    *reg = result & 0xff;
 }
 
 void i8080::INX(uint8_t *reg1, uint8_t *reg2)
 {
-    ++reg2; 
+    ++reg2;
     if (reg2 == 0)
     {
-        ++reg1; 
+        ++reg1;
     }
 }
 
 void i8080::JMP()
 {
-    pc = opcode[2] << 8 | opcode[1]; 
-    
+    pc = opcode[2] << 8 | opcode[1];
 }
 
 void i8080::LDA()
 {
-    uint16_t address = opcode[2] << 8 | opcode[1]; 
-    a = memory[address]; 
+    uint16_t address = opcode[2] << 8 | opcode[1];
+    a = memory[address];
 }
 
 void i8080::LDAX(uint8_t reg1, uint8_t reg2)
 {
-    uint16_t address = reg1 << 8 | reg2; 
-    a = memory[address]; 
+    uint16_t address = reg1 << 8 | reg2;
+    a = memory[address];
 }
 
 void i8080::LHLD()
 {
-    uint16_t address = opcode[2] << 8 | opcode[1]; 
-    l = memory[address]; 
-    h = memory[address + 1]; 
+    uint16_t address = opcode[2] << 8 | opcode[1];
+    l = memory[address];
+    h = memory[address + 1];
 }
 
-void i8080::LXI(uint8_t* reg1, uint8_t* reg2)
+void i8080::LXI(uint8_t *reg1, uint8_t *reg2)
 {
-    *reg1 = opcode[2]; 
-    *reg2 = opcode[1]; 
+    *reg1 = opcode[2];
+    *reg2 = opcode[1];
 }
 
 void i8080::ORA(uint8_t reg)
 {
-    uint16_t result = a | reg; 
-    cy = 0; 
+    uint16_t result = a | reg;
+    cy = 0;
     z = (result == 0);
     s = ((result & 0x80) != 0);
     p = parity(result & 0xff);
-    a = result & 0xff; 
+    a = result & 0xff;
 }
 
-void i8080::POP(uint8_t* reg1, uint8_t* reg2)
+void i8080::POP(uint8_t *reg1, uint8_t *reg2)
 {
-    *reg2 = memory[sp]; 
-    *reg1 = memory[sp + 1]; 
-    sp +=2; 
+    *reg2 = memory[sp];
+    *reg1 = memory[sp + 1];
+    sp += 2;
 }
 
 void i8080::POP_PSW()
 {
-    a = memory[sp + 1]; 
-    uint8_t psw = memory[sp]; 
-    s = (psw >> 7 & 0x1); 
-    z = (psw >> 6 & 0x1); 
-    ac = (psw >> 4 & 0x1); 
-    p = (psw >> 2 & 0x1); 
-    cy = (psw & 0x1); 
-    sp += 2; 
+    a = memory[sp + 1];
+    uint8_t psw = memory[sp];
+    s = (psw >> 7 & 0x1);
+    z = (psw >> 6 & 0x1);
+    ac = (psw >> 4 & 0x1);
+    p = (psw >> 2 & 0x1);
+    cy = (psw & 0x1);
+    sp += 2;
 }
 
 void i8080::PUSH(uint8_t reg1, uint8_t reg2)
 {
-    sp -= 1; 
-    memory[sp] = reg1; 
-    sp -= 1; 
+    sp -= 1;
+    memory[sp] = reg1;
+    sp -= 1;
     memory[sp] = reg2;
 }
-
 
 void i8080::PUSH_PSW()
 {
     uint8_t psw = (s << 7) | (z << 6) | (ac << 4) | (p << 2) | (1 << 1) | cy;
-    memory[sp - 1] = a; 
-    memory[sp - 2] = psw; 
-    sp -=2; 
+    memory[sp - 1] = a;
+    memory[sp - 2] = psw;
+    sp -= 2;
 }
 
 void i8080::RAL()
 {
-    uint8_t high_bit = a >> 7; 
-    uint8_t temp = a; 
-    a = (temp << 1) | cy; 
-    cy = high_bit; 
+    uint8_t high_bit = a >> 7;
+    uint8_t temp = a;
+    a = (temp << 1) | cy;
+    cy = high_bit;
 }
 
 void i8080::RAR()
 {
-    uint8_t low_bit = a & 0x1; 
+    uint8_t low_bit = a & 0x1;
+    uint8_t temp = cy;
+    cy = low_bit;
+    a = (a >> 1) | (temp << 7);
 }
 
+void i8080::RET()
+{
+    // values are stored in opposite order on the stack, thus the first part of address will be lower on the stack
+    pc = (memory[sp + 1] << 8) | memory[sp];
+    sp += 2;
+}
+
+void i8080::RLC()
+{
+    uint8_t high_bit = a >> 7;
+    cy = high_bit;
+    a = (a << 1) | high_bit;
+}
+
+void i8080::RRC()
+{
+    uint8_t low_bit = a & 0x1; 
+    cy = low_bit; 
+    a = (a >> 1) | (low_bit << 7); 
+}
+
+void i8080::SHLD()
+{
+    
+}
 
 int i8080::emulate()
 {
