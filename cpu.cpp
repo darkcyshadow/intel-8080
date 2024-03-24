@@ -216,7 +216,7 @@ void i8080::LDA()
 
 void i8080::LDAX(uint8_t* reg1, uint8_t* reg2)
 {
-    uint16_t address = reg1 << 8 | reg2;
+    uint16_t address = *reg1 << 8 | *reg2;
     a = memory[address];
 }
 
@@ -695,7 +695,166 @@ int i8080::emulate()
     // mov c, a
     case 0x4f: 
         c = a; 
-    // 
+    // mov d, b 
+    case 0x50: 
+        d = b; 
+    // mov d, c 
+    case 0x51: 
+        d = c; 
+    // mov d, d 
+    case 0x52: 
+        break; 
+    // mov d, e 
+    case 0x53: 
+        d = e; 
+    // mov d, h
+    case 0x54: 
+        d = h; 
+    // mov d l 
+    case 0x55: 
+        d = l; 
+    // mov d, m
+    case 0x56: 
+        uint16_t address = (h << 8) | l; 
+        d = memory[address]; 
+    // mov d, a 
+    case 0x57: 
+        d = a; 
+    // mov e, b 
+    case 0x58: 
+        e = b; 
+    // mov e, c
+    case 0x59: 
+        e = c; 
+    // mov e, d
+    case 0x5a: 
+        e = d; 
+    // mov e, e
+    case 0x5b: 
+        break; 
+    // mov e, h 
+    case 0x5c: 
+        e = h; 
+    // mov e l
+    case 0x5d: 
+        e = l; 
+    // mov e, m 
+    case 0x5e: 
+        uint16_t address = (h << 8) | l; 
+        e = memory[address]; 
+    // mov e, a 
+    case 0x5f: 
+        e = a; 
+    // mov h, b 
+    case 0x60: 
+        h = b; 
+    // mov h, c 
+    case 0x61: 
+        h = c; 
+    // mov h, d 
+    case 0x62: 
+        h = d; 
+    // mov h e
+    case 0x63: 
+        h = e;
+    // mov h, h 
+    case 0x64: 
+        break; 
+    // mov h, l
+    case 0x65: 
+        h = l; 
+    // mov h, m
+    case 0x66: 
+        uint16_t address = (h << 8) | l; 
+        h = memory[address]; 
+    // mov h a 
+    case 0x67: 
+        h = a; 
+    // mov l b 
+    case 0x68: 
+        l = b; 
+    // mov l, c 
+    case 0x69: 
+        l = c; 
+    // mov l, d
+    case 0x6a: 
+        l = d; 
+    // mov l e 
+    case 0x6b: 
+        l = e; 
+    // mov l , h
+    case 0x6c: 
+        l = h;
+    // mov l, l 
+    case 0x6d: 
+        break; 
+    // mov l, m 
+    case 0x6e: 
+        uint16_t address = (h << 8) | l; 
+        l = memory[address]; 
+    // mov l a 
+    case 0x6f: 
+        l = a; 
+    // mov m, b 
+    case 0x70: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = b; 
+    // mov m, c 
+    case 0x71: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = c;
+    // mov m, d 
+    case 0x72: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = d;
+    // mov m, e 
+    case 0x73: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = e;
+    // mov m, h 
+    case 0x74: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = h;
+    // mov m, l 
+    case 0x75: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = l;
+    // hlt  
+    case 0x76: 
+        exit(0); 
+    // move m, a 
+    case 0x77: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = a; 
+    // mov a, b 
+    case 0x78:
+        a = b; 
+    // mov a, c 
+    case 0x79: 
+        a = c; 
+    // mov a, d 
+    case 0x7a: 
+        a = d; 
+    // mov a, e 
+    case 0x7b:
+        a = e; 
+    // move a, h
+    case 0x7c: 
+        a = h; 
+    // mov a, l 
+    case 0x7d: 
+        a = l; 
+    // mov a, m 
+    case 0x7e: 
+        uint16_t address = (h << 8) | l; 
+        a = memory[address]; 
+    // mov a, e 
+    case 0x7f: 
+        break; 
+    
+       
+
+    
 
 
 }
