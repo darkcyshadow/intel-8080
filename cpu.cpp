@@ -608,7 +608,94 @@ int i8080::emulate()
         break; 
     // stc
     case 0x37: 
-        
-     
+        cy = 0x1; 
+    // nop 
+    case 0x38: 
+        break; 
+    // dad sp 
+    case 0x39: 
+        uint16_t pair = (h << 8) | l; 
+        uint32_t result = pair + sp; 
+        cy = ((result & 0xffff0000) > 0); 
+        h = (result >> 8) & 0xff; 
+        l = result * 0xff; 
+        break; 
+    // lda a16 
+    case 0x3a: 
+        LDA(); 
+        break;     
+    // dcx sp 
+    case 0x3b:
+        --sp; 
+        break; 
+    // inr a 
+    case 0x3c: 
+        INR(&a);  
+        break; 
+    // dcr a 
+    case 0x3d: 
+        DCR(&a); 
+        break; 
+    // mvi a, d8 
+    case 0x3e: 
+        uint8_t byte = opcode[1]; 
+        a = byte;
+        break;  
+    // cmc
+    case 0x3f: 
+        cy = ~cy; 
+        break; 
+    // mov b, b 
+    case 0x40: 
+        break; 
+    // mov b, c 
+    case 0x41: 
+        b = c; 
+    // mov b d 
+    case 0x42: 
+        b = d; 
+    // mov b e 
+    case 0x43: 
+        b = e; 
+    // mov b h
+    case 0x44: 
+        b = h; 
+    // mov b l 
+    case 0x45: 
+        b = l; 
+    // mov b m 
+    case 0x46:
+        uint16_t address = (h << 8) | l; 
+        b = memory[address]; 
+    // mov b a 
+    case 0x47:  
+        b = a; 
+    // mov c, b 
+    case 0x48: 
+        c = b; 
+    // mov c, c, 
+    case 0x49: 
+        break; 
+    // mov c, d 
+    case 0x4a: 
+        c = d; 
+    // mov c,e 
+    case 0x4b: 
+        c = e; 
+    // mov c, h 
+    case 0x4c: 
+        c = h; 
+    // mov c, l 
+    case 0x4d: 
+        c = l; 
+    // mov c, m 
+    case 0x4e: 
+        uint16_t address = (h << 8) | l; 
+        c = memory[address]; 
+    // mov c, a
+    case 0x4f: 
+        c = a; 
+    // 
+
 
 }
