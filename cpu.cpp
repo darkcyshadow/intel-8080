@@ -161,9 +161,9 @@ void i8080::DAA()
     }
 }
 
-void i8080::DAD(uint8_t reg1, uint8_t reg2)
+void i8080::DAD(uint8_t* reg1, uint8_t* reg2)
 {
-    uint32_t pair = reg1 << 8 | reg2;
+    uint32_t pair = *reg1 << 8 | *reg2;
     uint32_t hl = h << 8 | l;
     uint32_t result = hl + pair;
     cy = ((result & 0xffff0000) > 0); // check the upper 16 bits to see if there is an overflow beyond the 16 bits reg pair
@@ -214,7 +214,7 @@ void i8080::LDA()
     a = memory[address];
 }
 
-void i8080::LDAX(uint8_t reg1, uint8_t reg2)
+void i8080::LDAX(uint8_t* reg1, uint8_t* reg2)
 {
     uint16_t address = reg1 << 8 | reg2;
     a = memory[address];
@@ -317,8 +317,63 @@ void i8080::RRC()
 
 void i8080::SHLD()
 {
-    
+    uint16_t address = (opcode[2] << 8) | opcode[1]; 
+    memory[address] = l; 
+    memory[address + 1] = h; 
 }
+
+void i8080::STA()
+{
+    uint16_t address = (opcode[2] << 8) | opcode[1]; 
+    memory[address] = a; 
+}
+
+void i8080:: SBB(uint8_t* reg)
+{
+    *reg += cy; 
+    uint16_t result = a - *reg; 
+    handle_arith_flag(result); 
+    a = result & 0xff; 
+}
+
+void i8080::SUB(uint8_t* reg)
+{
+    uint16_t result = a - *reg; 
+    handle_without_carry(result); 
+    cy = (!result > 0xff); 
+}
+
+void i8080::XCHG()
+{
+    uint8_t temp_d = d; 
+    uint8_t temp_e = e; 
+    d = h; 
+    e = l; 
+    h = temp_d; 
+    l = temp_e; 
+}
+
+void i8080::XRA(uint8_t* reg)
+{
+    uint16_t result = a ^ *reg; 
+    handle_without_carry(result); 
+    cy = 0; 
+    ac = 0; 
+    a = result; 
+}
+
+void i8080::XTHL()
+{
+    uint8_t temp_l = l; 
+    uint8_t temp_h = h; 
+    l = memory[sp]; 
+    memory[sp] = temp_l; 
+    sp += 1; 
+    memory[sp] = temp_h; 
+    h = memory[sp]; 
+}
+
+
 
 int i8080::emulate()
 {
@@ -331,118 +386,229 @@ int i8080::emulate()
         break;
     // lxi b, word
     case 0x01:
-        c = opcode[1];
-        b = opcode[2];
-        pc += 2;
+        LXI(&b, &c); 
         break;
     // stax, b
     case 0x02:
         uint16_t bc = b << 8 | c;
         memory[bc] = a;
+        break; 
     // inx, b
     case 0x03:
-        ++c;
-        if (c == 0)
-        {
-            ++b;
-        }
+        INX(&b, &c); 
+        break; 
     // inr, b
     case 0x04:
-        uint16_t result = ++b;
-        handle_arith_flag(result);
+        INR(&b); 
+        break; 
     // dcr, b
     case 0x05:
-        uint16_t result = --b;
+        DCR(&b); 
+        break; 
     // mvi, b, d8
     case 0x06:
         uint16_t byte = opcode[1];
         b = byte;
+        break;
     // rlc
     case 0x07:
-        uint16_t temp = a;
-        c = temp >> 7;
-        a = temp << 1 | temp >> 7;
+        RLC(); 
+        break; 
     // nop
     case 0x08:
         break;
     // dad b
     case 0x09:
-        uint16_t hl = h << 8 | l;
-        uint16_t bc = b << 8 | c;
-        hl += bc;
-        handle_arith_flag(hl);
+        DAD(&b, &c); 
+        break; 
     // ldax b
     case 0xa:
-        uint16_t bc = b << 8 | c;
-        a = memory[bc];
+        LDAX(&b, &c); 
+        break; 
     // dcx b
     case 0xb:
-        uint16_t bc = b << 8 | c;
-        --bc;
+        DCX(&b, &c); 
+        break; 
     // inr c
     case 0xc:
-        uint16_t result = ++c;
-        handle_arith_flag(result);
+        INR(&c); 
+        break; 
     // dcr, c
     case 0xd:
-        uint16_t result = --c;
-        handle_arith_flag(result);
+        DCR(&c); 
+        break;
     // mvi, c, d8
     case 0xe:
         uint16_t value = opcode[1];
         c = value;
+        break; 
     // rrc
     case 0xf:
-        uint16_t temp = a;
-        a = temp >> 1 | temp << 7;
-        c = a >> 7;
+        RRC(); 
+        break; 
     // nop
     case 0x10:
         break;
     // lxi d, d16
     case 0x11:
-        e = opcode[1];
-        d = opcode[2];
-        pc += 2;
-        break;
+        LXI(&d, &e); 
+        break; 
     // stax d
     case 0x12:
-        uint16_t de = d << 8 | c;
-        memory[de] = a;
+        uint16_t address = (d << 8) | e; 
+        memory[address] = a; 
+        break; 
     // inx d
     case 0x13:
-        ++e;
-        if (e == 0)
-        {
-            ++d;
-        }
+       INX(&d, &e); 
+       break; 
     // inr, d
     case 0x14:
-        uint16_t result = ++d;
-        handle_arith_flag(result);
+        INR(&d); 
+        break; 
     // dcr, d
     case 0x15:
-        uint16_t result = --d;
-        handle_arith_flag(result);
+        DCR(&d); 
+        break; 
     // mvi d, d8
     case 0x16:
         uint16_t result = opcode[1];
         d = result;
+        break; 
     // ral
     case 0x17:
-        uint16_t temp = a;
-        a = temp << 1 | c;
-        c = temp >> 7;
+        RAL(); 
+        break; 
     // nop
     case 0x18:
         break;
     // dad d
     case 0x19:
-        uint16_t hl = h << 8 | l;
-        uint16_t de = h << 8 | e;
-        uint32_t result = hl + de;
-        c = ((result & 0xffff) > 0);
-        h = (result & 0xff) >> 8;
-        l = result & 0xff;
-    }
+        DAD(&d, &e); 
+        break; 
+    // ldax, d 
+    case 0x1a: 
+        LDAX(&d, &e); 
+        break;
+    // dcx, d 
+    case 0x1b: 
+        DCX(&d, &e); 
+        break; 
+    // inr e
+    case 0x1c: 
+        INR(&e); 
+        break; 
+    // dcr, e 
+    case 0x1d: 
+        DCR(&e); 
+        break; 
+    // mvi, e, d8
+    case 0x1e:
+        uint8_t byte = opcode[1]; 
+        e = byte; 
+        break; 
+    // rar
+    case 0x1f: 
+        RAR(); 
+        break; 
+    // nop 
+    case 0x20: 
+        break; 
+    // lxi h, d16
+    case 0x21: 
+        LXI(&h, &l); 
+        break; 
+    // shld a16 
+    case 0x22: 
+        SHLD(); 
+        break; 
+    // inx, h 
+    case 0x23: 
+        INX(&h, &l); 
+        break;
+    // inr h 
+    case 0x24: 
+        INR(&h); 
+        break; 
+    // dcr, h
+    case 0x25: 
+        DCR(&h); 
+        break; 
+    // mvi h, d8
+    case 0x26: 
+        uint8_t byte = opcode[1]; 
+        h = byte; 
+        break; 
+    // daa
+    case 0x27: 
+        DAA(); 
+        break; 
+    // nop
+    case 0x28: 
+        break; 
+    // dad h 
+    case 0x29: 
+        DAD(&h, &l); 
+        break; 
+    // lhld a16
+    case 0x2a: 
+        LHLD(); 
+        break; 
+    // dcx h 
+    case 0x2b: 
+        DCX(&h, &l); 
+        break; 
+    // inr l 
+    case 0x2c: 
+        INR(&l); 
+        break; 
+    // dcr l 
+    case 0x2d: 
+        DCR(&l); 
+    // mvi l, d8 
+    case 0x2e: 
+        uint8_t byte = opcode[1]; 
+        l = byte;
+        break; 
+    // cma
+    case 0x2f: 
+        CMA(); 
+    // nop 
+    case 0x30: 
+        break; 
+    // lxi sp, d16 
+    case 0x31: 
+        uint8_t second = opcode[1]; 
+        uint8_t third = opcode[2];
+        sp = (third << 8) | second; 
+        break; 
+    // sta a16
+    case 0x32: 
+        STA(); 
+        break;
+    // inx sp 
+    case 0x33: 
+        ++sp; 
+    // inr m
+    case 0x34: 
+        uint16_t address = (h << 8) | l; 
+        memory[address]++; 
+        handle_without_carry(memory[address]); 
+        break; 
+    // dcr m 
+    case 0x35: 
+        uint16_t address = (h << 8) | l; 
+        memory[address]--; 
+        handle_without_carry(memory[address]); 
+        break; 
+    // mvi m, d8 
+    case 0x36: 
+        uint16_t address = (h << 8) | l; 
+        memory[address] = opcode[1]; 
+        break; 
+    // stc
+    case 0x37: 
+        
+     
+
 }

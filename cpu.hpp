@@ -79,14 +79,14 @@ public:
   void CMC(); 
   void CMP(uint8_t reg); 
   void DAA(); 
-  void DAD(uint8_t reg1, uint8_t reg2); 
+  void DAD(uint8_t* reg1, uint8_t* reg2); 
   void DCR(uint8_t *reg); 
   void DCX(uint8_t* reg1, uint8_t* reg2); 
   void INR(uint8_t *reg); 
   void INX(uint8_t *reg1, uint8_t *reg2); 
   void JMP();
   void LDA(); 
-  void LDAX(uint8_t reg1, uint8_t reg2); 
+  void LDAX(uint8_t *reg1, uint8_t* reg2); 
   void LHLD(); 
   void LXI(uint8_t *reg1, uint8_t *reg2); 
   void ORA(uint8_t reg); 
@@ -101,11 +101,10 @@ public:
   void RRC(); 
   void SHLD(); 
   void STA(); 
-  void SBB(); 
-  void SBB(); 
-  void SUB(); 
+  void SBB(uint8_t *reg); 
+  void SUB(uint8_t* reg); 
   void XCHG(); 
-  void XRA(); 
+  void XRA(uint8_t* reg); 
   void XTHL(); 
 
 
