@@ -1429,9 +1429,9 @@ int i8080::emulate()
         pc = temp[2] << 8 | temp[1];
         break; 
 
-        default: 
-            unimplemented_instruction(); 
-            break; 
+    default: 
+        unimplemented_instruction(); 
+        break; 
     }
     
 };
