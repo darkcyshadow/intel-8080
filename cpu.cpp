@@ -91,14 +91,14 @@ logical:
 
 */
 
-void i8080::ADD(uint8_t* reg)
+void i8080::ADD(uint8_t *reg)
 {
     uint16_t result = a + *reg;
     handle_arith_flag(result);
     a = result & 0xff;
 }
 
-void i8080::ADC(uint8_t* reg)
+void i8080::ADC(uint8_t *reg)
 {
     uint16_t result = a + c + *reg;
     handle_arith_flag(result);
@@ -262,7 +262,7 @@ void i8080::POP_PSW()
     sp += 2;
 }
 
-void i8080::PUSH(uint8_t* reg1, uint8_t* reg2)
+void i8080::PUSH(uint8_t *reg1, uint8_t *reg2)
 {
     sp -= 1;
     memory[sp] = *reg1;
@@ -1074,257 +1074,365 @@ int i8080::emulate()
         z = (result == 0);
         s = ((result & 0x80) != 0);
         p = parity(result & 0xff);
-    // cmp a 
-    case 0xbf: 
-        CMP(&a); 
-    // rnz 
-    case 0xc0: 
+    // cmp a
+    case 0xbf:
+        CMP(&a);
+    // rnz
+    case 0xc0:
         if (z != 0x0)
         {
-            RET(); 
+            RET();
         }
-    // pop b 
-    case 0xc1: 
-        POP(&b, &c); 
-    // jnz a16 
-    case 0xc2: 
+    // pop b
+    case 0xc1:
+        POP(&b, &c);
+    // jnz a16
+    case 0xc2:
         if (z != 0x0)
         {
-            JMP(); 
+            JMP();
         }
-    // jmp a16 
-    case 0xc3: 
-        JMP(); 
-    // cnz a16 
-    case 0xc4: 
+    // jmp a16
+    case 0xc3:
+        JMP();
+    // cnz a16
+    case 0xc4:
         if (z != 0x0)
         {
-            CALL(); 
+            CALL();
         }
-    // push b 
-    case 0xc5: 
-        PUSH(&b, &c); 
-    // adi d8 
-    case 0xc6: 
-        uint8_t byte = opcode[1]; 
-        uint16_t result = a + byte; 
-        handle_arith_flag(result); 
-        a = result & 0xff; 
-    // rst 0 
-    case 0xc7: 
-        unsigned char temp[3]; 
-        temp[1] = 0; 
-        temp[2] = 0; 
+    // push b
+    case 0xc5:
+        PUSH(&b, &c);
+    // adi d8
+    case 0xc6:
+        uint8_t byte = opcode[1];
+        uint16_t result = a + byte;
+        handle_arith_flag(result);
+        a = result & 0xff;
+    // rst 0
+    case 0xc7:
+        unsigned char temp[3];
+        temp[1] = 0;
+        temp[2] = 0;
         uint16_t return_address = pc + 2;
         memory[sp - 1] = (return_address >> 8) & 0xff;
         memory[sp - 2] = return_address & 0xff;
         sp = sp - 2;
         pc = temp[2] << 8 | temp[1];
-    // rz 
-    case 0xc8: 
+    // rz
+    case 0xc8:
         if (z == 0x0)
         {
-            RET(); 
+            RET();
         }
-    // ret 
-    case 0xc9: 
-        RET(); 
-    // jz a16 
-    case 0xca: 
+    // ret
+    case 0xc9:
+        RET();
+    // jz a16
+    case 0xca:
         if (z == 0x0)
         {
-            JMP(); 
+            JMP();
         }
-    // jmp a16 illegal opcode 
-    case 0xcb: 
-        break; 
-    // cz a16 
-    case 0xcc: 
+    // jmp a16 illegal opcode
+    case 0xcb:
+        break;
+    // cz a16
+    case 0xcc:
         if (z == 0x0)
         {
-            CALL(); 
+            CALL();
         }
-    // call a16 
-    case 0xcd: 
-        CALL(); 
-    // aci d8 
-    case 0xce: 
-        uint8_t byte = opcode[1]; 
-        uint16_t result = a + byte + cy; 
-        handle_arith_flag(result); 
-        a = result & 0xff; 
-    // rst 1 
-    case 0xcf: 
-        unsigned char temp[3]; 
-        temp[1] = 8; 
-        temp[2] = 0; 
+    // call a16
+    case 0xcd:
+        CALL();
+    // aci d8
+    case 0xce:
+        uint8_t byte = opcode[1];
+        uint16_t result = a + byte + cy;
+        handle_arith_flag(result);
+        a = result & 0xff;
+    // rst 1
+    case 0xcf:
+        unsigned char temp[3];
+        temp[1] = 8;
+        temp[2] = 0;
         uint16_t return_address = pc + 2;
         memory[sp - 1] = (return_address >> 8) & 0xff;
         memory[sp - 2] = return_address & 0xff;
         sp = sp - 2;
         pc = temp[2] << 8 | temp[1];
-    // rnc 
-    case 0xd0: 
+    // rnc
+    case 0xd0:
         if (cy != 0x0)
         {
-            RET(); 
+            RET();
         }
-    // pop d 
-    case 0xd1: 
-        POP(&d, &e); 
-    // jnc a16 
-    case 0xd2: 
+    // pop d
+    case 0xd1:
+        POP(&d, &e);
+    // jnc a16
+    case 0xd2:
         if (cy != 0x0)
         {
-            JMP(); 
+            JMP();
         }
-    // out d8 
-    case 0xd3: 
-        break; 
-    // cnc a16 
-    case 0xd4: 
+    // out d8
+    case 0xd3:
+        break;
+    // cnc a16
+    case 0xd4:
         if (cy != 0x0)
         {
-            CALL(); 
+            CALL();
         }
-    // push d 
-    case 0xd5: 
-        PUSH(&d, &e); 
-    // sui d8 
-    case 0xd6: 
-        uint8_t byte = opcode[1]; 
-        uint16_t result = a - byte; 
-        handle_arith_flag(result); 
-        a = result & 0xff; 
-    // rst 2 
-    case 0xd7: 
-        unsigned char temp[3]; 
-        temp[1] = 16; 
-        temp[2] = 0; 
+    // push d
+    case 0xd5:
+        PUSH(&d, &e);
+    // sui d8
+    case 0xd6:
+        uint8_t byte = opcode[1];
+        uint16_t result = a - byte;
+        handle_arith_flag(result);
+        a = result & 0xff;
+    // rst 2
+    case 0xd7:
+        unsigned char temp[3];
+        temp[1] = 16;
+        temp[2] = 0;
         uint16_t return_address = pc + 2;
         memory[sp - 1] = (return_address >> 8) & 0xff;
         memory[sp - 2] = return_address & 0xff;
         sp = sp - 2;
         pc = temp[2] << 8 | temp[1];
-    // rc 
-    case 0xd8: 
+    // rc
+    case 0xd8:
         if (cy != 0x0)
         {
-            RET(); 
+            RET();
         }
-    // ret 1 illegal opcode 
-    case 0xd9: 
-        break; 
-    // jc a16 
-    case 0xda: 
+    // ret 1 illegal opcode
+    case 0xd9:
+        break;
+    // jc a16
+    case 0xda:
         if (cy != 0x0)
         {
-            JMP(); 
+            JMP();
         }
-    // in d8 
-    case 0xdb: 
-        break; 
-    // cc a16 
-    case 0xdc: 
+    // in d8
+    case 0xdb:
+        break;
+    // cc a16
+    case 0xdc:
         if (cy != 0x0)
         {
-            CALL(); 
+            CALL();
         }
-    // call a16 illegal opcode 
-    case 0xdd: 
-        break; 
-    // sbi d8 
-    case 0xde: 
-        uint8_t byte = opcode[1]; 
-        uint16_t result = a - byte - cy; 
-        handle_arith_flag(result); 
-        a = result & 0xff; 
-    // rst 3 
-    case 0xdf: 
-        unsigned char temp[3]; 
-        temp[1] = 24; 
-        temp[2] = 0; 
+    // call a16 illegal opcode
+    case 0xdd:
+        break;
+    // sbi d8
+    case 0xde:
+        uint8_t byte = opcode[1];
+        uint16_t result = a - byte - cy;
+        handle_arith_flag(result);
+        a = result & 0xff;
+    // rst 3
+    case 0xdf:
+        unsigned char temp[3];
+        temp[1] = 24;
+        temp[2] = 0;
         uint16_t return_address = pc + 2;
         memory[sp - 1] = (return_address >> 8) & 0xff;
         memory[sp - 2] = return_address & 0xff;
         sp = sp - 2;
         pc = temp[2] << 8 | temp[1];
-    // rpo 
-    case 0xe0: 
+    // rpo
+    case 0xe0:
         if (p == 0)
         {
-            RET(); 
+            RET();
         }
-    // pop h 
-    case 0xe1: 
-        POP(&h, &l); 
-    // JPO a16 
-    case 0xe2: 
+    // pop h
+    case 0xe1:
+        POP(&h, &l);
+    // JPO a16
+    case 0xe2:
         if (p == 0)
         {
-            JMP(); 
+            JMP();
         }
-    // xthl illegal opcode 
-    case 0xe3: 
-        break; 
-    // cpo a16 
-    case 0xe4: 
+    // xthl illegal opcode
+    case 0xe3:
+        break;
+    // cpo a16
+    case 0xe4:
         if (p == 0)
         {
-            CALL(); 
+            CALL();
         }
-    // push h 
-    case 0xe5: 
-        PUSH(&h, &l); 
-    // ani d8 
-    case 0xe6: 
-        uint8_t byte = opcode[1]; 
-        uint16_t result = a & byte; 
-        handle_arith_flag(result); 
-        a = result & 0xff; 
-    // rst 4 
-    case 0xe7: 
-        unsigned char temp[3]; 
-        temp[1] = 32; 
-        temp[2] = 0; 
+    // push h
+    case 0xe5:
+        PUSH(&h, &l);
+    // ani d8
+    case 0xe6:
+        uint8_t byte = opcode[1];
+        uint16_t result = a & byte;
+        handle_arith_flag(result);
+        a = result & 0xff;
+    // rst 4
+    case 0xe7:
+        unsigned char temp[3];
+        temp[1] = 32;
+        temp[2] = 0;
         uint16_t return_address = pc + 2;
         memory[sp - 1] = (return_address >> 8) & 0xff;
         memory[sp - 2] = return_address & 0xff;
         sp = sp - 2;
         pc = temp[2] << 8 | temp[1];
-    // rpe  
-    case 0xe8: 
+    // rpe
+    case 0xe8:
         if (p == 0x1)
         {
-            RET(); 
+            RET();
         }
-    // pchl 
-    case 0xe9: 
-        uint16_t address = (h << 8) | l; 
-        pc = address; 
-    // jpe a16 
-    case 0xea: 
+    // pchl
+    case 0xe9:
+        uint16_t address = (h << 8) | l;
+        pc = address;
+    // jpe a16
+    case 0xea:
         if (p == 0x1)
         {
-            JMP(); 
+            JMP();
         }
     // xchg
-    case 0xeb: 
-        XCHG(); 
-    // cpe a16 
-    case 0xec: 
+    case 0xeb:
+        XCHG();
+    // cpe a16
+    case 0xec:
         if (p == 0x1)
         {
-            CALL(); 
+            CALL();
         }
-    // call a16 illegal opcode 
-    case 0xed: 
+    // call a16 illegal opcode
+    case 0xed:
+        break;
+    // xri d8
+    case 0xee:
+        uint8_t byte = opcode[1];
+        uint16_t result = a ^ byte;
+        handle_without_carry(result);
+        cy = 0;
+        ac = 0;
+        a = result;
+    // rst 5
+    case 0xef:
+        unsigned char temp[3];
+        temp[1] = 40;
+        temp[2] = 0;
+        uint16_t return_address = pc + 2;
+        memory[sp - 1] = (return_address >> 8) & 0xff;
+        memory[sp - 2] = return_address & 0xff;
+        sp = sp - 2;
+        pc = temp[2] << 8 | temp[1];
+    // rp
+    case 0xf0:
+        if (s == 0)
+        {
+            RET();
+        }
+    // pop psw
+    case 0xf1:
+        POP_PSW();
+    // jp a16
+    case 0xf2:
+        if (s == 0)
+        {
+            JMP();
+        }
+    // di
+    case 0xf3:
+        break;
+    // cp a16
+    case 0xf4:
+        if (s == 0)
+        {
+            CALL();
+        }
+    // push psw
+    case 0xf5:
+        PUSH_PSW();
+    // ori d8
+    case 0xf6:
+        uint8_t byte = opcode[1];
+        uint16_t result = a | byte;
+        handle_without_carry(result);
+        a = result & 0xff;
+    // rst 6
+    case 0xf7:
+        unsigned char temp[3];
+        temp[1] = 48;
+        temp[2] = 0;
+        uint16_t return_address = pc + 2;
+        memory[sp - 1] = (return_address >> 8) & 0xff;
+        memory[sp - 2] = return_address & 0xff;
+        sp = sp - 2;
+        pc = temp[2] << 8 | temp[1];
+    // rm
+    case 0xf8:
+        if (s == 1)
+        {
+            RET();
+        }
+    // sphl
+    case 0xf9:
+        uint16_t address = (h << 8) | l;
+        sp = address;
+    // jm a16
+    case 0xfa:
+        if (s == 1)
+        {
+            JMP();
+        }
+    // ei
+    case 0xfb:
+        break;
+    // cm a16
+    case 0xfc:
+        if (s == 1)
+        {
+            CALL();
+        }
+    // call a16 illegal opcode
+    case 0xfd:
+        break;
+    // cpi d8
+    case 0xfe:
+        uint8_t byte = opcode[1];
+        uint16_t result = a - byte;
+        cy = (a < byte);
+        z = (result == 0);
+        s = ((result & 0x80) != 0);
+        p = parity(result & 0xff);
+    // rst 7 
+    case 0xff: 
+        unsigned char temp[3];
+        temp[1] = 56;
+        temp[2] = 0;
+        uint16_t return_address = pc + 2;
+        memory[sp - 1] = (return_address >> 8) & 0xff;
+        memory[sp - 2] = return_address & 0xff;
+        sp = sp - 2;
+        pc = temp[2] << 8 | temp[1];
         break; 
-    // xri d8 
-    case 0xee: 
-        uint8_t byte = opcode[1]; 
-        
 
-    
+        default: 
+            unimplemented_instruction(); 
+            break; 
     }
-}
+    
+};
+
