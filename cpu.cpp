@@ -377,6 +377,7 @@ int i8080::emulate()
 {
     // opcode is a pointer to the location in memory where the instruction is stored
     opcode = &memory[pc];
+    pc += 1; 
     switch (*opcode)
     {
     // nop
