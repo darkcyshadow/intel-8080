@@ -2,11 +2,13 @@
 #include <ctime>
 #include <stdint.h>
 
+
+
 /*
 Memory map:
     ROM
     $0000-$07ff:    invaders.h
-    $0800-$0fff:    invaders.g
+    $0800-$0fff:    invadersg.
     $1000-$17ff:    invaders.f
     $1800-$1fff:    invaders.e
 
@@ -16,7 +18,7 @@ Memory map:
 
     $4000-:     RAM mirror
   
-opcode flags:
+opcode flag:s
     z   - zero
     set to 1 when result equals 0
 
@@ -36,23 +38,26 @@ opcode flags:
     arithmetic instructions, it is adding 6 to adjust BCD arithmetic.
 */
 
+
+
 class i8080
 {
 private:
   uint8_t memory[0xFFFF];
-  uint16_t pc;
-  uint16_t sp;
+  uint16_t pc = 0; 
+  uint16_t sp = 0; 
   unsigned char* opcode; 
-  // accumulator, most arithmethic operations operate on register A and store result into A
-  uint8_t a;
-  uint8_t b;
-  uint8_t c;
-  uint8_t d;
-  uint8_t e;
-  uint8_t h;
-  uint8_t l;
-  uint8_t flag;
-
+  
+  // registers 
+  uint8_t a = 0; 
+  uint8_t b = 0; 
+  uint8_t c = 0; 
+  uint8_t d = 0; 
+  uint8_t e = 0; 
+  uint8_t h = 0; 
+  uint8_t l = 0; 
+  
+  // flags 
   uint8_t z : 1;
   uint8_t s : 1;
   uint8_t p : 1;
@@ -60,17 +65,39 @@ private:
   uint8_t ac : 1;
   uint8_t pad : 3;
 
+  // custom hardware for space invaders 
+  uint16_t reg_shift; 
+  uint8_t shift_offset; 
+
 public:
   i8080();
   ~i8080();
 
-  void execute_nop();
+  
+  void interrupt(uint8_t opcode); 
+
+  //io
+  uint8_t in_port[4];
+  uint8_t out_port[7];
+  // status 
+  uint8_t halt; 
+  uint8_t interrupts_enabled; 
+  uint64_t clock_count; 
+  uint64_t instruction_count; 
+
+  
+
+
+  
   int emulate();
-  void unimplemented_instruction();
+  
   void handle_arith_flag(uint16_t result);
   void handle_without_carry(uint16_t result); 
-  void handle_logical_flag(uint16_t result);
+
+  void unimplemented_instruction(); 
+
   int parity(uint16_t result); 
+
   void ADD(uint8_t* reg); 
   void ADC(uint8_t* reg); 
   void ANA(uint8_t* reg); 
