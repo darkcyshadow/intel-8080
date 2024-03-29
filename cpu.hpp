@@ -74,7 +74,7 @@ public:
   ~i8080();
 
   
-  void interrupt(uint8_t opcode); 
+  void generate_interrupt(uint8_t id); 
 
   //io
   uint8_t in_port[4];
@@ -84,6 +84,17 @@ public:
   uint8_t interrupts_enabled; 
   uint64_t clock_count; 
   uint64_t instruction_count; 
+
+  const uint16_t vram_address = 0x2400; 
+  
+  uint8_t vram = *memory + vram_address; 
+
+  // memory management 
+  uint8_t read_byte(uint16_t address); 
+  uint16_t read_word(uint16_t address); 
+  void write_byte(uint16_t address, uint8_t val); 
+  void write_word(uint16_t address, uint16_t value); 
+  
 
   
 
