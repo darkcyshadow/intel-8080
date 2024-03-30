@@ -33,6 +33,8 @@ i8080::i8080()
     p = 0;  
 }
 
+
+
 uint8_t i8080::read_byte(uint16_t address)
 {
     return memory[address]; 
@@ -170,20 +172,17 @@ void i8080::CMP(uint8_t *reg)
 
 void i8080::DAA()
 {
-    uint8_t lsb = (a << 4) >> 4;
-    if (lsb > 0x09 || ac == 1)
-    {
-        uint16_t result = lsb + 0x06;
-        handle_arith_flag(result);
-        a = a + 0x06;
+    uint8_t temp = 0;
+    if ((a & 0xf) > 9 || ac) {
+        temp += 0x06;
     }
-    uint8_t msb = (a >> 4);
-    if (msb > 0x09 || cy == 1)
-    {
-        uint16_t result = msb + 0x06;
-        handle_arith_flag(result);
-        a = (a & 0x0f) | ((msb + 0x06) << 4);
+    if (((a >> 4) >= 9 && (a & 0xf) > 9) || (a >> 4) > 9 || cy) {
+        temp += 0x60;
+        cy = 1;
     }
+    uint16_t result = a + temp; 
+    handle_without_carry(result);
+    a = result & 0xff; 
 }
 
 void i8080::DAD(uint8_t *reg1, uint8_t *reg2)
@@ -239,6 +238,7 @@ void i8080::LDA()
 {
     uint16_t address = (opcode[2] << 8) | opcode[1];
     a = read_byte(address); 
+    pc += 2;
 }
 
 void i8080::LDAX(uint8_t *reg1, uint8_t *reg2)
@@ -342,6 +342,14 @@ void i8080::RRC()
     a = (a >> 1) | (low_bit << 7);
 }
 
+void i8080::RST(int n)
+{
+    write_byte(sp - 1, pc >> 8); 
+    write_byte(sp - 2, pc & 0xff); 
+    sp -= 2; 
+    pc = 8 * n; 
+}
+
 void i8080::SHLD()
 {
     uint16_t address = (opcode[2] << 8) | opcode[1];
@@ -353,6 +361,7 @@ void i8080::STA()
 {
     uint16_t address = (opcode[2] << 8) | opcode[1];
     write_byte(address, a); 
+    pc += 2; 
 }
 
 void i8080::SBB(uint8_t *reg)
@@ -393,11 +402,11 @@ void i8080::XTHL()
 {
     uint8_t temp_l = l;
     uint8_t temp_h = h;
-    l = memory[sp];
-    memory[sp] = temp_l;
+    l = read_byte(sp); 
+    write_byte(sp, temp_l); 
     sp += 1;
-    memory[sp] = temp_h;
-    h = memory[sp];
+    write_byte(sp, temp_h); 
+    h = read_byte(sp); 
 }
 
 int i8080::emulate()
@@ -430,7 +439,7 @@ int i8080::emulate()
         DCR(&b); clock_count += 5; break;
     // mvi, b, d8
     case 0x06:
-        b = opcode[1]; pc += 1; clock_count += 7; break;
+        b = opcode[1]; pc++ ; clock_count += 7; break;
     // rlc
     case 0x07:
         RLC(); clock_count += 4; break;
@@ -454,7 +463,7 @@ int i8080::emulate()
         DCR(&c); clock_count += 5; break;
     // mvi, c, d8
     case 0xe:
-        uint16_t value = opcode[1]; c = value; clock_count += 7; break;
+        c = opcode[1]; pc++; clock_count += 7; break; 
     // rrc
     case 0xf:
         RRC(); clock_count += 4; break;
@@ -463,7 +472,7 @@ int i8080::emulate()
         clock_count += 4; break;
     // lxi d, d16
     case 0x11:
-        LXI(&d, &e); clock_count += 10; break;
+        LXI(&d, &e); pc += 2; clock_count += 10; break;
     // stax d
     case 0x12:
         uint16_t address = (d << 8) | e; write_byte(address, a); clock_count += 7; break;
@@ -478,7 +487,7 @@ int i8080::emulate()
         DCR(&d); clock_count += 5; break;
     // mvi d, d8
     case 0x16:
-        d = opcode[1]; pc += 2; clock_count += 7; break;
+        d = opcode[1]; pc ++ ; clock_count += 7; break;
     // ral
     case 0x17:
         RAL(); clock_count += 4; break;
@@ -502,7 +511,7 @@ int i8080::emulate()
         DCR(&e); clock_count += 5; break;
     // mvi, e, d8
     case 0x1e:
-        e = opcode[1]; pc += 1; clock_count += 7; break;
+        e = opcode[1]; pc++; clock_count += 7; break;
     // rar
     case 0x1f:
         RAR(); clock_count += 4; break;
@@ -511,10 +520,10 @@ int i8080::emulate()
         clock_count += 4; break;
     // lxi h, d16
     case 0x21:
-        LXI(&h, &l); clock_count += 10; break;
+        LXI(&h, &l); pc += 2; clock_count += 10; break;
     // shld a16
     case 0x22:
-        SHLD(); clock_count += 16; break;
+        SHLD(); pc += 2; clock_count += 16; break;
     // inx, h
     case 0x23:
         INX(&h, &l); clock_count += 5; break;
@@ -526,7 +535,7 @@ int i8080::emulate()
         DCR(&h); clock_count += 5; break;
     // mvi h, d8
     case 0x26:
-        h = opcode[1]; pc += 1; clock_count += 7; break;
+        h = opcode[1]; pc ++; clock_count += 7; break;
     // daa
     case 0x27:
         DAA(); clock_count += 4; break;
@@ -538,7 +547,7 @@ int i8080::emulate()
         DAD(&h, &l); clock_count += 10; break;
     // lhld a16
     case 0x2a:
-        LHLD(); clock_count += 16; break;
+        LHLD(); pc +=2 ; clock_count += 16; break;
     // dcx h
     case 0x2b:
         DCX(&h, &l); clock_count += 5; break;
@@ -550,7 +559,7 @@ int i8080::emulate()
         DCR(&l); clock_count += 5;
     // mvi l, d8
     case 0x2e:
-        l = opcode[1]; pc += 1; clock_count += 7; break;
+        l = opcode[1]; pc ++; clock_count += 7; break;
     // cma
     case 0x2f:
         clock_count += 4; CMA();
@@ -559,7 +568,7 @@ int i8080::emulate()
         clock_count += 4; break;
     // lxi sp, d16
     case 0x31:
-        uint8_t second = opcode[1]; uint8_t third = opcode[2]; sp = (third << 8) | second; clock_count += 10; break;
+        uint8_t second = opcode[1]; uint8_t third = opcode[2]; sp = (third << 8) | second; pc += 2; clock_count += 10; break;
     // sta a16
     case 0x32:
         STA(); clock_count += 13; break;
@@ -574,7 +583,7 @@ int i8080::emulate()
         uint16_t address = (h << 8) | l; memory[address]--; handle_without_carry(memory[address]); clock_count += 10; break;
     // mvi m, d8
     case 0x36:
-        uint16_t address = (h << 8) | l; write_byte(address, opcode[1]); clock_count += 10; break;
+        uint16_t address = (h << 8) | l; write_byte(address, opcode[1]); pc++; clock_count += 10; break;
     // stc
     case 0x37:
         cy = 0x1; clock_count += 4;
@@ -1006,10 +1015,10 @@ int i8080::emulate()
         PUSH(&b, &c); clock_count += 11; break; 
     // adi d8
     case 0xc6:
-        uint8_t byte = opcode[1]; uint16_t result = a + byte; handle_arith_flag(result); a = result & 0xff; clock_count += 7; break; 
+        uint8_t byte = opcode[1]; uint16_t result = a + byte; handle_arith_flag(result); a = result & 0xff; pc += 2; clock_count += 7; break; 
     // rst 0
     case 0xc7:
-        unsigned char temp[3]; temp[1] = 0; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(0); clock_count += 11; break; 
     // rz
     case 0xc8:
         if (z == 0x0) RET(); clock_count += 5; break; 
@@ -1030,10 +1039,10 @@ int i8080::emulate()
         CALL(); clock_count += 11; break; 
     // aci d8
     case 0xce:
-        uint8_t byte = opcode[1]; uint16_t result = a + byte + cy; handle_arith_flag(result); a = result & 0xff; clock_count += 7; break; 
+        uint8_t byte = opcode[1]; uint16_t result = a + byte + cy; handle_arith_flag(result); a = result & 0xff; pc += 2; clock_count += 7; break; 
     // rst 1
     case 0xcf:
-        unsigned char temp[3]; temp[1] = 8; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(1); clock_count += 11; break; 
     // rnc
     case 0xd0:
         if (cy != 0x0) RET(); clock_count += 5; break;
@@ -1054,10 +1063,10 @@ int i8080::emulate()
         PUSH(&d, &e); clock_count += 11; break; 
     // sui d8
     case 0xd6:
-        uint8_t byte = opcode[1]; uint16_t result = a - byte; handle_arith_flag(result); a = result & 0xff; clock_count += 7; break; 
+        uint8_t byte = opcode[1]; uint16_t result = a - byte; handle_arith_flag(result); a = result & 0xff; pc += 2; clock_count += 7; break; 
     // rst 2
     case 0xd7:
-        unsigned char temp[3]; temp[1] = 16; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(2); clock_count += 11; break; 
     // rc
     case 0xd8:
         if (cy != 0x0) RET(); clock_count += 5; break; 
@@ -1078,10 +1087,10 @@ int i8080::emulate()
         clock_count += 11; break;
     // sbi d8
     case 0xde:
-        uint8_t byte = opcode[1]; uint16_t result = a - byte - cy; handle_arith_flag(result); a = result & 0xff; clock_count += 7; break; 
+        uint8_t byte = opcode[1]; uint16_t result = a - byte - cy; handle_arith_flag(result); a = result & 0xff; pc += 2; clock_count += 7; break; 
     // rst 3
     case 0xdf:
-        unsigned char temp[3]; temp[1] = 24; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2;pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(3); clock_count += 11; break; 
     // rpo
     case 0xe0:
         if (p == 0) RET(); clock_count += 5; break; 
@@ -1093,7 +1102,7 @@ int i8080::emulate()
         if (p == 0) JMP(); clock_count += 10; break; 
     // xthl illegal opcode
     case 0xe3:
-        clock_count += 18; break;
+        XTHL(); clock_count += 18; break;
     // cpo a16
     case 0xe4:
         if (p == 0) CALL(); else pc += 2; clock_count += 11; break; 
@@ -1105,7 +1114,7 @@ int i8080::emulate()
         uint8_t byte = opcode[1]; uint16_t result = a & byte; handle_arith_flag(result); a = result & 0xff; clock_count += 7; break; 
     // rst 4
     case 0xe7:
-        unsigned char temp[3]; temp[1] = 32; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(4); clock_count += 11; break; 
     // rpe
     case 0xe8:
         if (p == 0x1) RET(); clock_count += 5; break;
@@ -1126,10 +1135,10 @@ int i8080::emulate()
         clock_count += 11; break;
     // xri d8
     case 0xee:
-        uint8_t byte = opcode[1]; uint16_t result = a ^ byte; handle_without_carry(result); cy = 0; ac = 0;a = result; clock_count += 7; break; 
+        uint8_t byte = opcode[1]; uint16_t result = a ^ byte; handle_without_carry(result); cy = 0; ac = 0; a = result; clock_count += 7; break; 
     // rst 5
     case 0xef:
-        unsigned char temp[3]; temp[1] = 40; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(5); clock_count += 11; break; 
     // rp
     case 0xf0:
         if (s == 0) RET(); clock_count += 5; break; 
@@ -1153,7 +1162,7 @@ int i8080::emulate()
         uint8_t byte = opcode[1]; uint16_t result = a | byte; handle_without_carry(result); a = result & 0xff; clock_count += 7; break; 
     // rst 6
     case 0xf7:
-        unsigned char temp[3]; temp[1] = 48; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(6); clock_count += 11; break; 
     // rm
     case 0xf8:
         if (s == 1) RET(); clock_count += 5; break; 
@@ -1177,7 +1186,7 @@ int i8080::emulate()
         uint8_t byte = opcode[1]; uint16_t result = a - byte; cy = (a < byte); z = (result == 0); s = ((result & 0x80) != 0); p = parity(result & 0xff); clock_count += 7;
     // rst 7 
     case 0xff: 
-        unsigned char temp[3]; temp[1] = 56; temp[2] = 0; uint16_t return_address = pc + 2; write_byte(sp - 1, (return_address >> 8) & 0xff); write_byte(sp - 2, return_address & 0xff); sp = sp - 2; pc = temp[2] << 8 | temp[1]; clock_count += 11; break; 
+        RST(7); clock_count += 11; break; 
     default: 
         unimplemented_instruction(); break; 
     }

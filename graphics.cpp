@@ -1,13 +1,9 @@
 #include "graphics.hpp"
 
-const uint16_t black = 0xf000;
-const uint16_t white = 0xffff;
-const uint16_t green = 0xf0f0;
-const uint16_t red = 0xff00;
 
 Graphics::Graphics(const char* _title, u_int16_t _width, u_int16_t _height, u_int16_t _pixel_size); 
 {
-    pixel_size = pixel_size; 
+    pixel_size = _pixel_size; 
     width = _width; 
     height = _height; 
 
@@ -22,17 +18,20 @@ Graphics::Graphics(const char* _title, u_int16_t _width, u_int16_t _height, u_in
 
 void Graphics::update(uint8_t* vram)
 {
-    uint32_t color = white; 
-    for (int x = 0; i < _width; ++x)
+    for (int x = 0; x < _width; ++x)
     {
         for (int y = 0; y < _height; ++y)
         {
             uint8_t vram_byte = vram[x * (_height >> 3) + (y >> 3)];
             for (int bit = 0; bit < 8; bit++)
             {
-                color = black; 
-                
+                uint8_t x_coord = x ; 
+                uint8_t y_coord = (_height - 1 - (y + bit)); 
+                pixels[y_coord * _width + x_coord] = 0xffff; 
             }
         }
     }
+    SDL_UpdateTexture(main_texture, NULL, pixels, 2 * _width); 
+    SDL_RenderCopy (main_renderer, main_texture, NULL, NULL); 
+    SDL_RenderPresent(main_renderer); 
 }
