@@ -1,6 +1,5 @@
 #include "graphics.hpp"
 
-
 Graphics::Graphics(const char* _title, u_int16_t _width, u_int16_t _height, u_int16_t _pixel_size); 
 {
     pixel_size = _pixel_size; 

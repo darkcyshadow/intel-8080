@@ -2,8 +2,6 @@
 #include <ctime>
 #include <stdint.h>
 
-
-
 /*
 Memory map:
     ROM
@@ -37,8 +35,6 @@ opcode flag:s
     following an instruction. It is primarily used in decimal (BCD)
     arithmetic instructions, it is adding 6 to adjust BCD arithmetic.
 */
-
-
 
 class i8080
 {
@@ -102,6 +98,7 @@ public:
   
   void handle_arith_flag(uint16_t result);
   void handle_without_carry(uint16_t result); 
+  void i8080::handle_without_ac(uint16_t result);
 
   void unimplemented_instruction(); 
 

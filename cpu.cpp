@@ -112,6 +112,16 @@ void i8080::handle_without_carry(uint16_t result)
     ac = (result > 0x09);
 }
 
+void i8080::handle_without_ac(uint16_t result) 
+{
+     // zero flag - set to 1 when result == 0
+    z = ((result & 0xff) == 0);
+    // sign flag - set to 1 when msb is set(negative)
+    s = ((result & 0x80) != 0);
+    // parity flag - set to 1 if result is even
+    p = parity(result & 0xff);
+}
+
 void i8080::unimplemented_instruction()
 {
     --pc; 
@@ -198,9 +208,7 @@ void i8080::DAD(uint8_t *reg1, uint8_t *reg2)
 void i8080::DCR(uint8_t *reg)
 {
     uint16_t result = --*reg;
-    z = ((result & 0xff) == 0);
-    s = ((result & 0x80) != 0);
-    p = parity(result & 0xff);
+    handle_without_carry(result); 
     *reg = result & 0xff;
 }
 
@@ -919,7 +927,7 @@ int i8080::emulate()
         ANA(&l); clock_count += 4; break;
     // ana m
     case 0xa6:
-        uint16_t address = (h << 8) | l; uint16_t result = a & memory[address]; handle_arith_flag(result); a = result & 0xff; clock_count += 7; break;
+        uint16_t address = (h << 8) | l; uint16_t result = a & memory[address]; handle_arith_flag(result); a = result & 0xff; pc++; clock_count += 7; break;
     // ana a
     case 0xa7:
         ANA(&a); clock_count += 4; break;
@@ -967,7 +975,7 @@ int i8080::emulate()
         ORA(&l); clock_count += 4; break;
     // ora M
     case 0xb6:
-        uint16_t address = (h << 8) | l; uint16_t result = a | memory[address]; cy = 0; z = (result == 0); s = ((result & 0x80) != 0); p = parity(result & 0xff); a = result & 0xff; clock_count += 7; break;
+        uint16_t address = (h << 8) | l; uint16_t result = a | memory[address]; cy = 0; z = (result == 0); s = ((result & 0x80) != 0); p = parity(result & 0xff); a = result & 0xff; pc++; clock_count += 7; break;
     // ora a
     case 0xb7:
         ORA(&a); clock_count += 4; break;
@@ -1135,7 +1143,7 @@ int i8080::emulate()
         clock_count += 11; break;
     // xri d8
     case 0xee:
-        uint8_t byte = opcode[1]; uint16_t result = a ^ byte; handle_without_carry(result); cy = 0; ac = 0; a = result; clock_count += 7; break; 
+        uint8_t byte = opcode[1]; uint16_t result = a ^ byte; handle_without_carry(result); cy = 0; ac = 0; a = result; pc++;  clock_count += 7; break; 
     // rst 5
     case 0xef:
         RST(5); clock_count += 11; break; 
